@@ -1,3 +1,5 @@
+//---Snake AI---//
+
 EnemySnake = function (index, game) {
 
     var x = game.world.randomX;
@@ -75,6 +77,7 @@ EnemySnake.prototype.update = function() {
         }
     }
     else {
+        //How AI do the decision//
         
         var change = Math.random()*10 ;
         if(change < 3){
@@ -107,11 +110,14 @@ EnemySnake.prototype.update = function() {
 
 };
 
-// Snake by Patrick OReilly and Richard Davey
-// Twitter: @pato_reilly Web: http://patricko.byethost9.com
+//--------//
 
+
+//  game start//
 var game = new Phaser.Game(1200, 800, Phaser.AUTO, 'phaser-example', { preload: preload, create: create, update: update,render : render });
 
+
+//  載入素材//
 function preload() {
 
     game.load.image('ball','assets/sprites/shinyball.png');
@@ -121,14 +127,14 @@ function preload() {
 }
 
 var snakeHead; //head of snake sprite
-var OldPath = new Array();
+var OldPath = new Array(); //array of position from old path
 var snakeSection = new Array(); //array of sprites that make the snake body sections
 var snakePath = new Array(); //arrary of positions(points) that have to be stored for the path the sections follow
 var numSnakeSections = 5; //number of snake body sections
 var snakeSpacer = 6; //parameter that sets the spacing between sections
 
 function create() {
-    land = game.add.tileSprite(0, 0, 1200, 800, 'earth');
+    land = game.add.tileSprite(0, 0, 1200, 800, 'earth');//new ground
     land.fixedToCamera = true;
 
     game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -137,6 +143,7 @@ function create() {
 
     cursors = game.input.keyboard.createCursorKeys();
 
+    //  create snakeHead//
     snakeHead = game.add.sprite(400, 300, 'ball');
     snakeHead.score = 0;
     snakeHead.anchor.setTo(0.5, 0.5);
@@ -145,7 +152,9 @@ function create() {
     snakeHead.body.drag.set(0.2);
     snakeHead.body.maxVelocity.setTo(400, 400);
     snakeHead.body.collideWorldBounds = true;
+    //--------//
 
+    //  create enemy into list//
     enemies = [];
 
     enemiesTotal = 5;
@@ -154,21 +163,23 @@ function create() {
     {
         enemies.push(new EnemySnake(i, game));
     }
+    //--------//
 
-    
-    stars = game.add.group(); // make a group of stars
+    //  make a group of stars//
+    stars = game.add.group(); 
     stars.enableBody = true;
     for (var i = 0; i < 50; i++) {
       generateStar();
     }
-    //  Init snakeSection array
+
+    //  Init snakeSection array//
     for (var i = 1; i <= numSnakeSections-1; i++)
     {
         snakeSection[i] = game.add.sprite(400, 300, 'ball');
         snakeSection[i].anchor.setTo(0.5, 0.5);
     }
     
-    //  Init snakePath array
+    //  Init snakePath and OldPath array//
     for (var i = 0; i <= numSnakeSections * snakeSpacer; i++)
     {
         snakePath[i] = new Phaser.Point(400, 300);
@@ -186,10 +197,13 @@ function update() {
     game.physics.arcade.overlap(snakeHead, stars, collectStar, null, this);
     snakeHead.body.velocity.setTo(0, 0);
     snakeHead.body.angularVelocity = 0;
+
+    //update enemy//
     for (i=0;i<enemiesTotal;i++){
         enemies[i].update();
     }
 
+    //according to the score change the length of snake//
     if(snakeHead.score%10===1)
     {
         snakeHead.score++;
@@ -200,13 +214,11 @@ function update() {
            snakePath.push(OldPath[0]);
            OldPath.splice(0,1);
         }
-        console.log(snakeSection);
         head();
     }
     else {
         if (1)
         {
-            console.log(snakePath);
             head();    
         }
     }
@@ -224,14 +236,15 @@ function update() {
     land.tilePosition.y = -game.camera.y;
 };
 
+//news what I want//
 function render() {
 
-    //game.debug.spriteInfo(snakeHead, 32, 32);
     game.debug.text('Score: 0'+snakeHead.score ,32 ,16);
     game.debug.spriteInfo(snakeHead, 32, 32);
 
 }
 
+//let snake go ahead//
 function head(){
     snakeHead.body.velocity.copyFrom(game.physics.arcade.velocityFromAngle(snakeHead.angle, 300));
 
@@ -273,6 +286,7 @@ function Enemyhead(){
         this.snakeSection[i].y = (this.snakePath[i * this.snakeSpacer]).y;
     }
 }
+
 
 function generateStar() {
   var star = stars.create(Math.random() * 1200, Math.random() * 800, 'bullet');
