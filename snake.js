@@ -42,7 +42,7 @@ EnemySnake = function (index, game) {
 };
 EnemySnake.prototype.kill = function () {
     for(var j = 1 ; j < this.numSnakeSections ; j++){
-            this.snakeSection[j].kill();
+        this.snakeSection[j].kill();
     }
     this.alive = false;
     this.snakeHead.kill();
@@ -141,7 +141,6 @@ function create() {
     game.physics.startSystem(Phaser.Physics.ARCADE);
 
     game.world.setBounds(0, 0, 1200, 800);
-    console.log(game.world.getBounds());
 
     cursors = game.input.keyboard.createCursorKeys();
 
@@ -153,7 +152,7 @@ function create() {
     game.physics.enable(snakeHead, Phaser.Physics.ARCADE);
     snakeHead.body.drag.set(0.2);
     snakeHead.body.maxVelocity.setTo(400, 400);
-    //snakeHead.body.collideWorldBounds = true;
+    snakeHead.body.collideWorldBounds = true;
 
     //--------//
 
@@ -199,18 +198,14 @@ function update() {
     game.physics.arcade.overlap(snakeHead, stars, collectStar, null, this);
     snakeHead.body.velocity.setTo(0, 0);
     snakeHead.body.angularVelocity = 0;
-    if(snakeHead.x > game.world.x+game.world.width || snakeHead.y > game.world.y+game.world.height){
-        kill();
-    }
-    if(snakeHead.x < 0 || snakeHead.y < 0){
-        kill();
-    }
+    
     //update enemy//
     for (var i=0;i<enemiesTotal;i++){
         enemies[i].update();
         game.physics.arcade.overlap(enemies[i].snakeHead, snakesection, function(){enemies[i].kill()});
         game.physics.arcade.overlap(enemies[i].snakeSection, snakeHead , kill);
         for(var j = 0;j<enemiesTotal;j++){
+            //AI
             if(i != j){
                 if (this.game.physics.arcade.distanceBetween(enemies[i].snakeHead, enemies[j].snakeHead) < 200){
                     var change = Math.random()*10 ;
@@ -232,7 +227,37 @@ function update() {
                     }
                 
                 }
-                game.physics.arcade.overlap(enemies[i].snakeSection, enemies[j].snakeHead , function(){enemies[j].kill()});
+                for(var a =1;a<numSnakeSections;a++){
+                if (this.game.physics.arcade.distanceBetween(enemies[i].snakeHead, snakesection[a] ) < 200){
+                    var change = Math.random()*10 ;
+                    if(change >= 5 ){
+                        enemies[i].snakeHead.body.angularVelocity = -300*change;
+                    }
+                    else{
+                        enemies[i].snakeHead.body.angularVelocity = 600*change;
+                    }
+                }
+                
+                }
+                if(enemies[i].snakeHead.x - (game.world.x+game.world.width) >= -100|| enemies[i].snakeHead.y - (game.world.y+game.world.height) >= -100){
+                    var change = Math.random()*10 ;
+                    if(change >= 5 ){
+                        enemies[i].snakeHead.body.angularVelocity = -300*change;
+                    }
+                    else{
+                        enemies[i].snakeHead.body.angularVelocity = 600*change;
+                    }
+                }
+                if(enemies[i].snakeHead.x < 100 || enemies[i].snakeHead.y < 100){
+                    var change = Math.random()*10 ;
+                    if(change >= 5 ){
+                        enemies[i].snakeHead.body.angularVelocity = -300*change;
+                    }
+                    else{
+                        enemies[i].snakeHead.body.angularVelocity = 600*change;
+                    }
+                }
+                game.physics.arcade.overlap(enemies[i].snakeSection, enemies[j].snakeHead , function(){enemies[j].kill()});//AI間頭與身體碰撞死亡
             }       
         }
     }
@@ -337,6 +362,5 @@ var kill = function () {
     snakeHead.kill();
     oldPath = [];
     snakePath = [];
-    console.log(snakeHead.alive);
 
 }
