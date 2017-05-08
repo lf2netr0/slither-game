@@ -33,8 +33,8 @@ function create() {
 
 	snakeHead = game.add.sprite(400, 300, 'ball');
 	snakeHead.anchor.setTo(0.5, 0.5);
-  snakeHead.score = 0;
-  snakeHead.enableBody = true;
+  	snakeHead.score = 0;
+  	snakeHead.enableBody = true;
 	game.physics.enable(snakeHead, Phaser.Physics.ARCADE);
 	snakeHead.body.collideWorldBounds = true;
 
@@ -69,17 +69,15 @@ function create() {
     }
   
     game.camera.follow(snakeHead);
+    //Add text of scores
     text = game.add.text(0, 0, 'score: '+snakeHead.score, { font: '32px serif' });
-
-      //  This adds a linear gradient to the Text object, which we can
-      //  reflect in our particles using the setColor and setAlpha properties.
     text.fixedToCamera = true;
 }
 
 function update() {
   snakeHead.body.angularVelocity = 0;
   text.text = 'score: '+snakeHead.score;
-  if(snakeHead.score%10===0 && snakeHead.score !== 0)
+  if(snakeHead.score%10===0 && snakeHead.score !== 0)//Add one body ball per 10 score
   {
     grow();
   }
@@ -108,8 +106,8 @@ function move(){
   var part = new Phaser.Point(snakeHead.x, snakeHead.y);
 
     snakePath.unshift(part);
-	  //body copy
-	  oldPath.unshift(snakePath.pop());
+    //body copy
+    oldPath.unshift(snakePath.pop());
     oldPath.pop();
 
     
@@ -126,13 +124,13 @@ function createfood(i) {
 }
 
 function eat(snakeHead, food) {
-  snakeHead.score += 1;
-	food.destroy(); // remove the star that has collided with the player
+  	snakeHead.score += 1;
+	food.destroy(); // remove the food that has collided with the player
 	createfood();
 }
 
 function grow(){
-    
+    //Create New body and pass the coordinate between current path array and old one
     var path = oldPath[0];
     
     snakesection[numSnakeSections] = game.add.sprite(path.x, path.y, 'ball');
@@ -149,6 +147,7 @@ function grow(){
     snakeHead.score+=1;
 }
 
+//Enemy Class
 EnemySnake = function () {
     var x = game.world.randomX;
     var y = game.world.randomY;
@@ -192,13 +191,13 @@ function EnemyUpdate(snake){
       game.physics.arcade.overlap(snake.EnemyHead, foods, eat);
       game.physics.arcade.overlap(snakeHead, snake.EnemySection, kill) ;//
       
-      //AI變長
+      //AI Snake grow up 
       if(snake.EnemyHead.score%10===0 &&snake.EnemyHead.score !==0 )
       {
         EnemyGrow(snake);
         
       }else {
-        //AI移動
+        //AI Snake move
         EnemyMove(snake);
         if(snake.StepCount >20+300*Math.random()){
           snake.EnemyHead.rotation = -3.14 + 6.28*Math.random();
