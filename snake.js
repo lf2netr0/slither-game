@@ -1,3 +1,18 @@
+var game = new Phaser.Game(800, 600, Phaser.AUTO, 'phaser-example', { preload: preload, create: create, update: update});
+
+function preload() {
+
+    game.load.crossOrigin = "anonymous";
+    game.load.spritesheet('food','http://s.ntustcoding.club/snake/foods.png', 36, 36);
+    game.load.image('ball','http://s.ntustcoding.club/snake/body.png');
+    game.load.image('eball','http://s.ntustcoding.club/snake/ebody.png');
+    game.load.image('ground', 'http://s.ntustcoding.club/snake/ground.png');
+  
+  
+}
+
+
+
 var snakeHead;
 var snakesection = []; //array of sprites that make the snake body sections
 var snakePath = [];
