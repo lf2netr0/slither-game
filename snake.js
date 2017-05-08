@@ -1,183 +1,33 @@
-//---Snake AI---//
-
-EnemySnake = function (index, game) {
-
-    var x = game.world.randomX;
-    var y = game.world.randomY;
-
-    this.game = game;
-    this.numSnakeSections = 5;
-    this.snakePath = new Array();
-    this.OldPath = new Array();
-    this.snakeSpacer = 6;
-    this.snakeSection = new Array();
-    this.alive = true;
-
-
-    this.snakeHead = game.add.sprite(x, y, 'ball');
-    this.snakeHead.anchor.setTo(0.5, 0.5);
-    this.snakeHead.score = 0;
-
-    game.physics.enable(this.snakeHead, Phaser.Physics.ARCADE);
-    this.snakeHead.body.drag.set(0.2);
-    this.snakeHead.body.maxVelocity.setTo(400, 400);
-    this.snakeHead.body.collideWorldBounds = true;
-
-        //  Init snakeSection array
-    for (var i = 1; i <= this.numSnakeSections-1; i++)
-    {
-        this.snakeSection[i] = game.add.sprite(x, y, 'ball');
-        game.physics.enable(this.snakeSection[i], Phaser.Physics.ARCADE);
-        this.snakeSection[i].anchor.setTo(0.5, 0.5);
-    }
-    
-    //  Init snakePath array
-    for (var i = 0; i <= this.numSnakeSections * this.snakeSpacer; i++)
-    {
-        this.snakePath[i] = new Phaser.Point(x,y);
-        this.OldPath[i] = new Phaser.Point(x,y);
-    }  
-    this.snakeHead.bringToTop();
-
-};
-EnemySnake.prototype.kill = function () {
-    for(var j = 1 ; j < this.numSnakeSections ; j++){
-        this.snakeSection[j].kill();
-    }
-    this.alive = false;
-    this.snakeHead.kill();
-    this.OldPath = [];
-    this.snakePath = [];
-    
-
-}
-
-
-EnemySnake.prototype.update = function() {
-
-    var that = this;
-
-        if(this.alive == true){    
-            
-            game.physics.arcade.overlap(this.snakeHead, stars, collectStar);
-            this.snakeHead.body.velocity.setTo(0, 0);
-            this.snakeHead.body.angularVelocity = 0;
-        }
-        if(this.alive == true){    
-            if(this.snakeHead.score%10===1)
-            {
-                var path = this.snakePath[this.numSnakeSections*this.snakeSpacer];
-
-                this.numSnakeSections +=1;
-
-                this.snakeSection[this.numSnakeSections-1] = game.add.sprite(path.x, path.y, 'ball');
-                this.snakeSection[this.numSnakeSections-1].anchor.setTo(0.5, 0.5);
-
-                for(var i=0;i<this.snakeSpacer;i++){
-
-                    this.snakePath.push(this.OldPath[i]);
-
-                }
-                this.snakeHead.score+=1;
-            }
-            
-            else {
-                //How AI do the decision//
-                this.snakeHead.body.velocity.copyFrom(game.physics.arcade.velocityFromAngle(this.snakeHead.angle, 300));
-
-                // Everytime the snake head moves, insert the new location at the start of the array, 
-                // and knock the last position off the end
-
-                
-
-                //console.log(snakeHead,snakeSection);
-                this.OldPath.unshift(this.snakePath.pop());
-                this.OldPath.pop();
-
-                var part = new Phaser.Point(this.snakeHead.x, this.snakeHead.y);
-
-                this.snakePath.unshift(part);
-
-                for (var i = 1; i <= this.numSnakeSections - 1; i++)
-                {
-                    this.snakeSection[i].x = (this.snakePath[i * this.snakeSpacer]).x;
-                    this.snakeSection[i].y = (this.snakePath[i * this.snakeSpacer]).y;
-                }
-
-                
-        }
-    }
-
-};
-
-//--------//
-
-
-//  game start//
-var game = new Phaser.Game(1200, 800, Phaser.AUTO, 'phaser-example', { preload: preload, create: create, update: update,render : render });
-
-
-//  載入素材//
-function preload() {
-
-    game.load.image('ball','assets/sprites/shinyball.png');
-    game.load.image('earth', 'assets/games/tanks/scorched_earth.png');
-    game.load.image('bullet', 'assets/games/tanks/bullet.png');
-
-}
-
-var snakeHead; //head of snake sprite
-var snakesection = new Array(); //array of sprites that make the snake body sections
-var snakePath = new Array();
+var snakeHead;
+var snakesection = []; //array of sprites that make the snake body sections
+var snakePath = [];
 var oldPath = []; //arrary of positions(points) that have to be stored for the path the sections follow
 var numSnakeSections = 5; //number of snake body sections
 var snakeSpacer = 6; //parameter that sets the spacing between sections
+var foods ;
+var enemies = [];
+var enemiesTotal = 20;
+var speed = 200;
+var text;
 
 
 function create() {
-    land = game.add.tileSprite(0, 0, 1200, 800, 'earth');//new ground
-    land.fixedToCamera = true;
+	ground = game.add.tileSprite(0, 0, 4000, 4000, 'ground');
 
-    game.physics.startSystem(Phaser.Physics.ARCADE);
+	game.world.setBounds(0, 0, 4000, 4000);
 
-    game.world.setBounds(0, 0, 1200, 800);
+	snakeHead = game.add.sprite(400, 300, 'ball');
+	snakeHead.anchor.setTo(0.5, 0.5);
+  snakeHead.score = 0;
+  snakeHead.enableBody = true;
+	game.physics.enable(snakeHead, Phaser.Physics.ARCADE);
+	snakeHead.body.collideWorldBounds = true;
 
-    cursors = game.input.keyboard.createCursorKeys();
-
-    //  create snakeHead//
-    snakeHead = game.add.sprite(400, 300, 'ball');
-    snakeHead.score = 0;
-    snakeHead.anchor.setTo(0.5, 0.5);
-
-    game.physics.enable(snakeHead, Phaser.Physics.ARCADE);
-    snakeHead.body.drag.set(0.2);
-    snakeHead.body.maxVelocity.setTo(400, 400);
-    snakeHead.body.collideWorldBounds = true;
-
-    //--------//
-
-    //  create enemy into list//
-    enemies = [];
-
-    enemiesTotal = 5;
-
-    for (var i = 0; i < enemiesTotal; i++)
-    {
-        enemies.push(new EnemySnake(i, game));
-    }
-    //--------//
-
-    //  make a group of stars//
-    stars = game.add.group(); 
-    stars.enableBody = true;
-    for (var i = 0; i < 50; i++) {
-        generateStar();
-    }
-
-    //  Init snakeSection array//
+	//  Init snakeSection array//
     for (var i = 1; i <= numSnakeSections-1; i++)
     {
         snakesection[i] = game.add.sprite(400, 300, 'ball');
+        snakesection[i].enableBody = true;
         game.physics.enable(snakesection[i], Phaser.Physics.ARCADE);
         snakesection[i].anchor.setTo(0.5, 0.5);
     }
@@ -188,133 +38,66 @@ function create() {
         snakePath[i] = new Phaser.Point(400, 300);
         oldPath[i] = new Phaser.Point(400,300);
     }
-    snakeHead.bringToTop();
-    
 
+    //  make a group of stars//
+    foods = game.add.group(); 
+    game.physics.enable(foods, Phaser.Physics.ARCADE);
+    foods.enableBody = true;
+    for (var i = 0; i < 500; i++) {
+        createfood(i);
+    }
+  
+    for (var i = 0; i < enemiesTotal; i++)
+    {
+        enemies.push(new EnemySnake());
+        enemies[i].EnemyHead.index = i ;
+    }
+  
+    game.camera.follow(snakeHead);
+    text = game.add.text(0, 0, 'score: '+snakeHead.score, { font: '32px serif' });
 
+      //  This adds a linear gradient to the Text object, which we can
+      //  reflect in our particles using the setColor and setAlpha properties.
+    text.fixedToCamera = true;
 }
 
 function update() {
-    game.physics.arcade.overlap(snakeHead, stars, collectStar, null, this);
-    snakeHead.body.velocity.setTo(0, 0);
-    snakeHead.body.angularVelocity = 0;
-    
-    //update enemy//
-    for (var i=0;i<enemiesTotal;i++){
-        enemies[i].update();
-        game.physics.arcade.overlap(enemies[i].snakeHead, snakesection, function(){enemies[i].kill()});
-        game.physics.arcade.overlap(enemies[i].snakeSection, snakeHead , kill);
-        for(var j = 0;j<enemiesTotal;j++){
-            //AI
-            if(i != j){
-                if (this.game.physics.arcade.distanceBetween(enemies[i].snakeHead, enemies[j].snakeHead) < 200){
-                    var change = Math.random()*10 ;
-                    if(change >= 5 ){
-                        enemies[i].snakeHead.body.angularVelocity = -300*change;
-                    }
-                    else{
-                        enemies[i].snakeHead.body.angularVelocity = 600*change;
-                    }
-                
-                }
-                if (this.game.physics.arcade.distanceBetween(enemies[i].snakeHead, snakeHead ) < 200){
-                    var change = Math.random()*10 ;
-                    if(change >= 5 ){
-                        enemies[i].snakeHead.body.angularVelocity = -300*change;
-                    }
-                    else{
-                        enemies[i].snakeHead.body.angularVelocity = 600*change;
-                    }
-                
-                }
-                for(var a =1;a<numSnakeSections;a++){
-                if (this.game.physics.arcade.distanceBetween(enemies[i].snakeHead, snakesection[a] ) < 200){
-                    var change = Math.random()*10 ;
-                    if(change >= 5 ){
-                        enemies[i].snakeHead.body.angularVelocity = -300*change;
-                    }
-                    else{
-                        enemies[i].snakeHead.body.angularVelocity = 600*change;
-                    }
-                }
-                
-                }
-                if(enemies[i].snakeHead.x - (game.world.x+game.world.width) >= -100|| enemies[i].snakeHead.y - (game.world.y+game.world.height) >= -100){
-                    var change = Math.random()*10 ;
-                    if(change >= 5 ){
-                        enemies[i].snakeHead.body.angularVelocity = -300*change;
-                    }
-                    else{
-                        enemies[i].snakeHead.body.angularVelocity = 600*change;
-                    }
-                }
-                if(enemies[i].snakeHead.x < 100 || enemies[i].snakeHead.y < 100){
-                    var change = Math.random()*10 ;
-                    if(change >= 5 ){
-                        enemies[i].snakeHead.body.angularVelocity = -300*change;
-                    }
-                    else{
-                        enemies[i].snakeHead.body.angularVelocity = 600*change;
-                    }
-                }
-                game.physics.arcade.overlap(enemies[i].snakeSection, enemies[j].snakeHead , function(){enemies[j].kill()});//AI間頭與身體碰撞死亡
-            }       
-        }
-    }
-
-    //according to the score change the length of snake//
-    if(snakeHead.alive == true){
-        if(snakeHead.score%10===9)
-        {
-            grow();
-        }
-        else {
-
-            if(cursors.up.isDown){
-                ahead();
-            }
-            
-        }
-        
-        if(cursors.left.isDown)
-        {
-            snakeHead.body.angularVelocity = -300;
-        }
-        else if (cursors.right.isDown)
-        {
-            snakeHead.body.angularVelocity = 300;
-        }
-
-        land.tilePosition.x = -game.camera.x;
-        land.tilePosition.y = -game.camera.y;
-    }
-};
-
-//news what I want//
-function render() {
-
-    game.debug.text('Score: 0'+snakeHead.score ,32 ,16);
-    game.debug.spriteInfo(snakeHead, 32, 32);
-
+  snakeHead.body.angularVelocity = 0;
+  text.text = 'score: '+snakeHead.score;
+  if(snakeHead.score%10===0 && snakeHead.score !== 0)
+  {
+    grow();
+  }
+  else {
+	  move();
+  }
+  if(game.input.activePointer.leftButton.isDown){
+    speed = 400;
+  }
+  else{
+    speed =200;
+  }
+	game.physics.arcade.overlap(snakeHead, foods, eat);
+  
+  for (var i=0;i<enemiesTotal;i++){
+    EnemyUpdate(enemies[i]);
+  }
 }
 
-//let snake go ahead//
-function ahead(){
-    if(snakeHead.alive == true){
-    snakeHead.body.velocity.copyFrom(game.physics.arcade.velocityFromAngle(snakeHead.angle, 300));
-
-    // Everytime the snake head moves, insert the new location at the start of the array, 
-    // and knock the last position off the end
-
-    
-
-    //console.log(snakeHead,snakeSection);
-    oldPath.unshift(snakePath.pop());
-    oldPath.pop();
-
-    var part = new Phaser.Point(snakeHead.x, snakeHead.y);
+function move(){
+  
+  snakeHead.rotation = game.physics.arcade.angleToPointer(snakeHead)
+  
+	//ahead
+	snakeHead.body.velocity = game.physics.arcade.velocityFromRotation(snakeHead.rotation, speed);
+  var part = new Phaser.Point(snakeHead.x, snakeHead.y);
 
     snakePath.unshift(part);
+	  //body copy
+	  oldPath.unshift(snakePath.pop());
+    oldPath.pop();
+
+    
 
     for (var i = 1; i <= numSnakeSections - 1; i++)
     {
@@ -323,44 +106,148 @@ function ahead(){
     }
 }
 
+function createfood(i) {
+	foods.create(Math.random() * 4000, Math.random() * 4000, 'food', i%7);
 }
 
-function generateStar() {
-  var star = stars.create(Math.random() * 1200, Math.random() * 800, 'bullet');
-  star.anchor.setTo(Math.random(), Math.random());
-  star.body.bounce.y = Math.random() ;
-  star.body.bounce.x = Math.random() ;
+function eat(snakeHead, food) {
+  snakeHead.score += 1;
+	food.destroy(); // remove the star that has collided with the player
+	createfood();
 }
 
-function collectStar(snakeHead, star) {
-  star.destroy(); // remove the star that has collided with the player
-  generateStar();
-  snakeHead.score+=1;
-
-
-}
 function grow(){
     
-    var path = snakePath[numSnakeSections*snakeSpacer];
-    numSnakeSections +=1;
-    snakesection[numSnakeSections-1] = game.add.sprite(path.x, path.y, 'ball');
-    snakesection[numSnakeSections-1].anchor.setTo(0.5, 0.5);
+    var path = oldPath[0];
+    
+    snakesection[numSnakeSections] = game.add.sprite(path.x, path.y, 'ball');
+    snakesection[numSnakeSections].anchor.setTo(0.5, 0.5);
+    snakesection[numSnakeSections].enableBody = true;
+    game.physics.enable(snakesection[numSnakeSections], Phaser.Physics.ARCADE);
 
     for(var i=0;i<snakeSpacer;i++){
 
         snakePath.push(oldPath[i]);
 
     }
+    numSnakeSections +=1;
     snakeHead.score+=1;
 }
 
-var kill = function () {
-    for(var j = 1 ; j < numSnakeSections ; j++){
-        snakesection[j].kill();
+EnemySnake = function () {
+    var x = game.world.randomX;
+    var y = game.world.randomY;
+    this.StepCount = 0;
+    this.numEnemySections = 5;
+    this.EnemyPath = [];
+    this.EnemyOldPath = [];
+    this.EnemySpacer = 6;
+    this.EnemySection = [];
+    this.alive = true;
+  
+    this.EnemyHead = game.add.sprite(x, y, 'eball');
+    this.EnemyHead.anchor.setTo(0.5, 0.5);
+    this.EnemyHead.enableBody = true;
+    this.EnemyHead.score = 0;
+    game.physics.enable(this.EnemyHead, Phaser.Physics.ARCADE);
+  
+    this.EnemyHead.body.collideWorldBounds = true;
+
+        //  Init snakeSection array
+    for (var i = 1; i <= this.numEnemySections-1; i++)
+    {
+        this.EnemySection[i] = game.add.sprite(x, y, 'eball');
+        this.EnemySection[i].enableBody = true;
+        game.physics.enable(this.EnemySection[i], Phaser.Physics.ARCADE);
+        this.EnemySection[i].anchor.setTo(0.5, 0.5);
     }
     
-    snakeHead.kill();
-    oldPath = [];
-    snakePath = [];
+    //  Init snakePath array
+    for (var i = 0; i <= this.numEnemySections * this.EnemySpacer; i++)
+    {
+        this.EnemyPath[i] = new Phaser.Point(x,y);
+        this.EnemyOldPath[i] = new Phaser.Point(x,y);
+    }  
+}
 
+function EnemyUpdate(snake){  
+
+  if(snake.alive == true){
+
+      game.physics.arcade.overlap(snake.EnemyHead, foods, eat);
+      game.physics.arcade.overlap(snakeHead, snake.EnemySection, kill) ;//
+      
+      //AI變長
+      if(snake.EnemyHead.score%10===0 &&snake.EnemyHead.score !==0 )
+      {
+        EnemyGrow(snake);
+        
+      }else {
+        //AI移動
+        EnemyMove(snake);
+        if(snake.StepCount >20+300*Math.random()){
+          snake.EnemyHead.rotation = -3.14 + 6.28*Math.random();
+          snake.StepCount = 0;
+        }
+        
+        for(var i=0;i<enemies.length;i++){
+          
+          if(snake.EnemyHead !== enemies[i].EnemyHead){
+            game.physics.arcade.overlap(enemies[i].EnemyHead , snake.EnemySection, Enemykill);
+          }
+          for(var t = 0;t < numSnakeSections ; t++){
+            game.physics.arcade.overlap(enemies[i].EnemyHead, snakesection, Enemykill);
+          }
+        }     
+      }
+   }
+}
+function EnemyMove(enemy){
+  
+      enemy.EnemyHead.body.velocity = game.physics.arcade.velocityFromRotation(enemy.EnemyHead.rotation, 200);      
+      enemy.EnemyOldPath.unshift(enemy.EnemyPath.pop());
+      enemy.EnemyOldPath.pop();
+
+      var part = new Phaser.Point(enemy.EnemyHead.x, enemy.EnemyHead.y);
+
+      enemy.EnemyPath.unshift(part);
+
+      for (var i = 1; i <= enemy.numEnemySections - 1; i++)
+      {
+        enemy.EnemySection[i].x = (enemy.EnemyPath[i * enemy.EnemySpacer]).x;
+        enemy.EnemySection[i].y = (enemy.EnemyPath[i * enemy.EnemySpacer]).y;
+      }
+      enemy.StepCount +=1;
+}
+
+function EnemyGrow(enemy){
+  
+        var path = enemy.EnemyPath[enemy.numEnemySections*enemy.EnemySpacer];
+
+        enemy.numEnemySections +=1;
+
+        enemy.EnemySection[enemy.numEnemySections-1] = game.add.sprite(path.x, path.y, 'eball');
+        enemy.EnemySection[enemy.numEnemySections-1].anchor.setTo(0.5, 0.5);
+        enemy.EnemySection[enemy.numEnemySections-1].enableBody = true;
+        game.physics.enable(enemy.EnemySection[enemy.numEnemySections-1], Phaser.Physics.ARCADE);
+        
+        for(var i=0;i<enemy.EnemySpacer;i++){
+
+          enemy.EnemyPath.push(enemy.EnemyOldPath[i]);
+
+        }
+        enemy.EnemyHead.score+=1;
+}
+function kill(){
+  for(var j = 1 ; j < numSnakeSections ; j++){
+        snakesection[j].kill();
+    }
+  snakeHead.kill();
+}
+
+function Enemykill(Head){
+  for(var j = 1 ; j < enemies[Head.index].numEnemySections ; j++){
+    enemies[Head.index].EnemySection[j].kill();
+  }
+  Head.kill();
 }
